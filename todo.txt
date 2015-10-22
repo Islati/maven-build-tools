@@ -1,0 +1,2 @@
+#todo Implement a project object to hold all the details of each project node inside the config.yml
+#todo implement log file for all actions completed

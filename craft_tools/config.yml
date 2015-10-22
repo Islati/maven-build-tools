@@ -1,0 +1,5 @@
+copy_files:
+- /home/brandon/Projects/Commons/target/commons-1.8.8.jar
+- /home/brandon/Dropbox/Raiders/Core/out/Raiders.jar
+projects:
+- /home/brandon/Projects/Commons/
