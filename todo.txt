@@ -1,2 +1,3 @@
 #todo Implement a project object to hold all the details of each project node inside the config.yml
 #todo implement log file for all actions completed
+#Todo implement todo management for project, by checking if the todo exists anymore. Track progression of completions / implementations / removals / how often, stats, so on!
