@@ -9,6 +9,7 @@ import logging
 from logging.config import dictConfig
 from builtins import input
 from bs4 import BeautifulSoup
+from ftpretty import ftpretty
 
 # TODo Eventually make it able to scan for projects based on where they're stored!
 # TODO Implement FTP output to server with directory
@@ -24,6 +25,8 @@ parser.add_argument('--build', required=False, action="store_true")
 parser.add_argument('--addproject', action="store_true", required=False,
                     help='Directories of Maven projects which to add!')
 parser.add_argument('--todo', required=False, action="store_true", help="Flag used to generate the todo file")
+parser.add_argument('--upload', required=False, action="store_true",
+                    help="Whether or not to upload the files to the server.")
 
 # TODO Make some implementation of the mary jane.
 
@@ -208,7 +211,8 @@ class App:
             'clean': args.clean,
             'build': args.build,
             'todo': args.todo,
-            'add_project': args.addproject
+            'add_project': args.addproject,
+            'upload': args.upload
         }
 
         # Check if there's any files to add
@@ -275,12 +279,10 @@ class App:
         # TODO Modify this to do some useful or somethin.
         if not self.config:
             self.config = {
-                # TODO Implement directory searching / matching based on input.
-                # TODO Implement copy files into each project.
-                'copy_files': [
-                    '/home/brandon/Projects/Commons/target/commons-1.8.8.jar',
-                    '/home/brandon/Dropbox/Raiders/Core/out/Raiders.jar',
-                ]
+                'ftp-host': 'HOST',
+                'ftp-username': 'USERNAME',
+                'ftp-password': 'PASSWORD',
+                'remote-upload-directory': '/Dev/plugins/'
             }
 
         with open(self.config_location, 'w') as yaml_file:
@@ -389,12 +391,16 @@ class App:
             for project in self.projects:
                 local_path = os.path.join(self.__executing_location(),
                                           os.path.basename(project.get_pom_info()['output_jar']))
+
                 if not os.path.exists(local_path):
                     continue
 
                 os.remove(local_path)
 
         # Copy all the files from config locations, to the executing folder.
+
+        copied_files = []
+
         if self.operations['copy'] is True:
             for project in self.projects:
                 output_jar_path = os.path.join(project.target_directory, project.get_pom_info()['output_jar'])
@@ -403,7 +409,30 @@ class App:
                     print("Unable to find %s for project %s" % (project.get_pom_info()['output_jar'], project.name))
                     continue
 
-                shutil.copyfile(output_jar_path, os.path.join(dest_loc, project.get_pom_info()['output_jar']))
+                new_file_path = os.path.join(dest_loc, project.get_pom_info()['output_jar'])
+                shutil.copyfile(output_jar_path, new_file_path)
+                copied_files.append(new_file_path)
+
+        if self.operations['upload'] is True:
+            if len(copied_files) == 0:
+                print("You must copy files before you can upload them")
+                return
+
+            ftp_client = ftpretty(host=self.config['ftp-host'], user=self.config['ftp-username'],
+                                  password=self.config['ftp-password'])
+
+            put_directory = self.config['remote-upload-directory']
+
+            print("Connected to FTP Remote Host; Uploading files to %s" % put_directory)
+
+            ftp_client.cd(put_directory)
+
+            for copied in copied_files:
+                base_file = os.path.basename(copied)
+                ftp_client.put(copied, base_file)
+                print("Uploaded %s to %s" % (base_file, put_directory))
+                
+            ftp_client.close()
 
         print("Operations complete")
 

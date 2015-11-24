@@ -1,2 +1,4 @@
-"{build_command: mvn clean install, directory: /home/brandon/Projects/Commons/, name:\
-  \ Commons,\n  target_directory: /home/brandon/Projects/Commons/target/}\n"
+build_command: mvn clean install
+directory: /home/brandon/Projects/Commons/
+name: Commons
+target_directory: /home/brandon/Projects/Commons/target/
