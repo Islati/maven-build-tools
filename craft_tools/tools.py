@@ -6,10 +6,12 @@ import argparse
 import subprocess
 import logging
 
+import click
 from logging.config import dictConfig
 from builtins import input
 from bs4 import BeautifulSoup
 from ftpretty import ftpretty
+from cookiecutter.main import cookiecutter
 
 # TODo Eventually make it able to scan for projects based on where they're stored!
 # TODO Implement FTP output to server with directory
@@ -19,10 +21,13 @@ parser.add_argument('--copy', required=False, action="store_true", help="Copy Fi
 parser.add_argument('--clean', required=False, action='store_true',
                     help='Clear all files currently here before copying')
 parser.add_argument('--config', required=False, type=argparse.FileType)
-parser.add_argument('--build', required=False, action="store_true")
+parser.add_argument('--build', required=False, nargs="*", default=None)
+# parser.add_argument('--build', required=False, action="store_true")
 # TODO Create an argument group for adding projects, with sub args dependant on how its structured
 parser.add_argument('--addproject', action="store_true", required=False,
                     help='Directories of Maven projects which to add!')
+parser.add_argument('--createproject', action="store_true", required=False,
+                    help="Create a new Maven project for your Minecraft Project!")
 parser.add_argument('--todo', required=False, action="store_true", help="Flag used to generate the todo file")
 parser.add_argument('--upload', required=False, action="store_true",
                     help="Whether or not to upload the files to the server.")
@@ -149,9 +154,32 @@ class Project(object):
 
         soup = BeautifulSoup(pom_doc, 'lxml')
 
-        artifact_id = soup.find("artifactid").string
+        has_parent = len(soup.find_all("parent")) > 0
 
-        version = soup.find('version').string
+        artifact_id = None
+        version = None
+        if has_parent:
+            art_count = 0
+            for artifact_ids in soup.find_all("artifactid"):
+                if art_count == 0:
+                    art_count += 1
+                    continue
+                else:
+                    artifact_id = artifact_ids.string
+                    break
+
+            ver_count = 0
+            for versions in soup.find_all("version"):
+                if ver_count == 0:
+                    ver_count += 1
+                    continue
+                else:
+                    version = versions.string
+                    break
+
+        else:
+            artifact_id = soup.find("artifactid").string
+            version = soup.find('version').string
 
         output_jar = "%s-%s.jar" % (artifact_id, version)
 
@@ -206,14 +234,18 @@ class App:
 
         self.projects = []
 
+        self.build_projects = []
+
         # Todo Move operations to classes that are executed with args.
         self.operations = {
             'copy': args.copy,
             'clean': args.clean,
-            'build': args.build,
+            'build': args.build is not None,
+            # 'build':  args.build,
             'todo': args.todo,
             'add_project': args.addproject,
-            'upload': args.upload
+            'upload': args.upload,
+            'create_project': args.createproject
         }
 
         if args.config:
@@ -237,6 +269,15 @@ class App:
             self.__create_config()
 
         self.__load_projects()
+
+        if args.build is not None:
+            if "all" in args.build:
+                self.build_projects.append("all")
+            else:
+                for project_name in args.build:
+                    self.build_projects.append(project_name)
+        else:
+            print("Skipping implementation of build process!")
 
     def __executing_location(self):
         return os.path.dirname(os.path.realpath(__file__))
@@ -278,6 +319,7 @@ class App:
             project = None
             with open(project_config_file, 'r') as project_file:
                 project = Project.load(project_file)
+
                 if project in self.projects:
                     print("Duplicate Project found [%s]" % project.name)
                     continue
@@ -312,6 +354,100 @@ class App:
 
     def run(self):
 
+        if self.operations['create_project']:
+
+            # todo move prompting to click prompt.
+            project_author = click.prompt("Project Author", default="Your Username")
+            project_name = click.prompt("Project Name", default="My Spigot Project")
+            project_version = click.prompt("Project Version", default="1.0.0")
+            project_description = click.prompt("Project Description", default="A cookie-cutter spigot project")
+            main_package = click.prompt("Main Package",
+                                        default="com.caved_in.%s" % project_name.lower().replace(' ', '_').replace('-',
+                                                                                                                   '_'))
+            main_class = click.prompt(
+                "Main Class", default=project_name.replace(' ', '').replace("-", ""))
+
+            plugin_types = ['BukkitPlugin', 'MiniGame']
+            choice_lines = ["{}".format(plugin_type) for plugin_type in plugin_types]
+
+            plugin_type_prompt = "Plugin Type - Choose from ({})".format(', '.join(choice_lines))
+
+            plugin_type = click.prompt(plugin_type_prompt, type=click.Choice(plugin_types), default='BukkitPlugin')
+
+            repo_name = click.prompt("Repository Name", default=project_name.lower().replace(" ", ""))
+
+            artifact_id = click.prompt("Artifact Name", default=project_name.lower().replace(" ", ""))
+            plugin_dependencies = click.prompt("Plugin Dependencies", default="Commons")
+            spigot_version = click.prompt("Spigot Version", default="1.8.8-R0.1-SNAPSHOT")
+
+            output_dir = click.prompt("Lastly, where do you wish to store the project?",
+                                      default=os.path.join(os.path.expanduser("~"), "Projects"))
+
+            # todo implement template selection from menu, and program accordingly!
+            cookiecutter("templates/cookiecutter-commons/", output_dir=output_dir, no_input=True,
+                         extra_context={
+                             "project_author": project_author,
+                             "project_name": project_name,
+                             "project_version": project_version,
+                             "project_description": project_description,
+                             "main_package": main_package,
+                             "main_class": main_class,
+                             "plugin_type": plugin_type,
+                             "repo_name": repo_name,
+                             "artifact_id": artifact_id,
+                             "plugin_dependencies": plugin_dependencies,
+                             "spigot_version": spigot_version
+                         })
+
+            project_main_path = os.path.join(output_dir, repo_name, "src", "main", "java")
+
+            project_new_path = os.path.join(output_dir, repo_name)
+
+            project_main_package_path = project_main_path
+
+            if not os.path.exists(project_main_package_path):
+                print("PROJECT FAILED TO CREATE. FAILING OUT")
+                exit(9)
+                return
+
+            project_package_path = main_package.split(".")
+            for path in project_package_path:
+                project_main_package_path = os.path.join(project_main_package_path, path)
+
+                if not os.path.exists(project_main_package_path):
+                    os.mkdir(project_main_package_path)
+
+            if not os.path.exists(project_main_package_path):
+                os.makedirs(project_main_package_path)
+
+            main_class_path = os.path.join(project_main_path, "%s.java" % main_class)
+
+            if not os.path.exists(main_class_path):
+                print("Unable to locate path %s" % main_class_path)
+                return  # todo clean up dir... Shit failed bruh.
+
+            shutil.move(main_class_path, os.path.join(project_main_package_path, "%s.java" % main_class))
+
+            print("Finished Generating project [%s] @ %s" % (project_name, project_new_path))
+
+            # Get the project configuration directory.
+            projects_config_dir = os.path.join(self.__executing_location(), 'projects')
+
+            # Create the project from prompt.
+            project = Project(
+                name=project_name,
+                directory=project_new_path,
+                target_directory=os.path.join(project_new_path, "target"),
+                build_command="mvn clean install --offline"
+            )
+
+            # Save the project to file!
+            # TODO: Move this save operation to the project itself.
+            with open(os.path.join(projects_config_dir, '%s.yml' % project.name), 'w') as project_new_config_file:
+                yaml.dump(project.yaml(), project_new_config_file, default_flow_style=False)
+
+            print("Created %s.yml file in projects folder to allow management with CraftBuildTools!" % project_name)
+            print("Continuing Execution!")
         # If the script was executed with the add-project argument, then we're going
         # to prompt the user for all the options required to create a new project.
         # After the prompting of such, the script will finish execution. Adding projects is
@@ -333,8 +469,13 @@ class App:
             print(project.yaml())
             print("================")
 
-            print("Operations Complete")
-            return
+            print("Operations Complete, Adding project to application!")
+            self.projects.append(project)
+
+            build_new_project = click.prompt("Append your project to be built?", default=True, type=click.BOOL)
+
+            if build_new_project:
+                self.build_projects.append(project.name)
 
         # Build a todo file!
         if self.operations['todo'] is True:
@@ -375,11 +516,23 @@ class App:
                 print("Created todo.yml in project root %s", project.name)
 
         # Build all the projects described in the config.yml
+
+        built_projects = []
+
         if self.operations['build'] is True:
             failed_builds = []
             successful_builds = []
             invalid_project_folders = []
+
+            compile_all = "all" in self.build_projects
+
             for project in self.projects:
+                # If we're not compiling all the projects available
+                if not compile_all:
+                    # Then check if the projects name is in the projects to build!
+                    if project.name not in self.build_projects:
+                        continue
+
                 if not os.path.exists(project.directory):
                     invalid_project_folders.append(project.name)
                     continue
@@ -392,8 +545,9 @@ class App:
                     failed_builds.append(project.name)
                 else:
                     successful_builds.append(project.name)
+                    built_projects.append(project)
 
-            total_projects = len(self.projects)
+            total_projects = len(self.projects) if compile_all else len(self.build_projects)
             failed_projects = len(failed_builds)
             built_project = total_projects - failed_projects
             print(
@@ -416,14 +570,14 @@ class App:
         copied_files = []
 
         if self.operations['copy'] is True:
-            # TODO Make it so that only built files are copied to project dest.
-            for project in self.projects:
-                output_jar_path = os.path.join(project.target_directory, project.get_pom_info()['output_jar'])
+            for project in built_projects:
+                pom_info = project.get_pom_info()
+                output_jar_path = os.path.join(project.target_directory, pom_info['output_jar'])
                 if not os.path.exists(output_jar_path):
-                    print("Unable to find %s for project %s" % (project.get_pom_info()['output_jar'], project.name))
+                    print("Unable to find %s for project %s" % (pom_info['output_jar'], project.name))
                     continue
 
-                new_file_path = os.path.join(self.files_folder, project.get_pom_info()['output_jar'])
+                new_file_path = os.path.join(self.files_folder, pom_info['output_jar'])
                 shutil.copyfile(output_jar_path, new_file_path)
                 copied_files.append(new_file_path)
 

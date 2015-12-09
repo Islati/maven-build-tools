@@ -1,0 +1,7 @@
+name: {{cookiecutter.repo_name}}
+main: {{cookiecutter.main_package}}.{{cookiecutter.main_class}}
+version: ${project.version}
+description: {{cookiecutter.project_description}}
+author: {{cookiecutter.project_author}}
+depend: [{{cookiecutter.plugin_dependencies}}]
+softdepend: []
