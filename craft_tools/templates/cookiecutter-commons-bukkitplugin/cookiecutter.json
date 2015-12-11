@@ -5,10 +5,6 @@
   "project_description": "A cookie-cutter spigot / bukkit project!",
   "main_package": "com.caved_in.{{cookiecutter.project_name.lower().replace(' ','_')}}",
   "main_class": "{{cookiecutter.project_name.replace(' ','')}}",
-  "plugin_type": [
-    "BukkitPlugin",
-    "MiniGame"
-  ],
   "repo_name": "{{cookiecutter.project_name.lower().replace(' ','')}}",
   "artifact_id": "{{cookiecutter.project_name.lower().replace(' ','')}}",
   "plugin_dependencies": "Commons",

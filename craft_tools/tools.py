@@ -361,11 +361,6 @@ class App:
             project_name = click.prompt("Project Name", default="My Spigot Project")
             project_version = click.prompt("Project Version", default="1.0.0")
             project_description = click.prompt("Project Description", default="A cookie-cutter spigot project")
-            main_package = click.prompt("Main Package",
-                                        default="com.caved_in.%s" % project_name.lower().replace(' ', '_').replace('-',
-                                                                                                                   '_'))
-            main_class = click.prompt(
-                "Main Class", default=project_name.replace(' ', '').replace("-", ""))
 
             plugin_types = ['BukkitPlugin', 'MiniGame']
             choice_lines = ["{}".format(plugin_type) for plugin_type in plugin_types]
@@ -373,6 +368,19 @@ class App:
             plugin_type_prompt = "Plugin Type - Choose from ({})".format(', '.join(choice_lines))
 
             plugin_type = click.prompt(plugin_type_prompt, type=click.Choice(plugin_types), default='BukkitPlugin')
+
+            main_package = click.prompt("Main Package",
+                                        default="com.caved_in.%s" % project_name.lower().replace(' ', '_').replace('-',
+                                                                                                                   '_'))
+
+            main_class = click.prompt(
+                "Main Class", default=project_name.replace(' ', '').replace("-", ""))
+
+            user_class = ""
+            user_manager_class = ""
+            if plugin_type == "MiniGame":
+                user_class = click.prompt("User Class", default="%sUser" % main_class)
+                user_manager_class = click.prompt("User Manager Class", default="%sManager" % user_class)
 
             repo_name = click.prompt("Repository Name", default=project_name.lower().replace(" ", ""))
 
@@ -384,20 +392,40 @@ class App:
                                       default=os.path.join(os.path.expanduser("~"), "Projects"))
 
             # todo implement template selection from menu, and program accordingly!
-            cookiecutter("templates/cookiecutter-commons/", output_dir=output_dir, no_input=True,
-                         extra_context={
-                             "project_author": project_author,
-                             "project_name": project_name,
-                             "project_version": project_version,
-                             "project_description": project_description,
-                             "main_package": main_package,
-                             "main_class": main_class,
-                             "plugin_type": plugin_type,
-                             "repo_name": repo_name,
-                             "artifact_id": artifact_id,
-                             "plugin_dependencies": plugin_dependencies,
-                             "spigot_version": spigot_version
-                         })
+            if plugin_type == "BukkitPlugin":
+
+                cookiecutter("templates/cookiecutter-commons-bukkitplugin/", output_dir=output_dir, no_input=True,
+                             extra_context={
+                                 "project_author": project_author,
+                                 "project_name": project_name,
+                                 "project_version": project_version,
+                                 "project_description": project_description,
+                                 "main_package": main_package,
+                                 "main_class": main_class,
+                                 "plugin_type": plugin_type,
+                                 "repo_name": repo_name,
+                                 "artifact_id": artifact_id,
+                                 "plugin_dependencies": plugin_dependencies,
+                                 "spigot_version": spigot_version
+                             })
+            else:
+
+                cookiecutter("templates/cookiecutter-commons-minigame/", output_dir=output_dir, no_input=True,
+                             extra_context={
+                                 "project_author": project_author,
+                                 "project_name": project_name,
+                                 "project_version": project_version,
+                                 "project_description": project_description,
+                                 "main_package": main_package,
+                                 "main_class": main_class,
+                                 "user_class": user_class,
+                                 "user_manager_class": user_manager_class,
+                                 "plugin_type": plugin_type,
+                                 "repo_name": repo_name,
+                                 "artifact_id": artifact_id,
+                                 "plugin_dependencies": plugin_dependencies,
+                                 "spigot_version": spigot_version
+                             })
 
             project_main_path = os.path.join(output_dir, repo_name, "src", "main", "java")
 
@@ -428,6 +456,18 @@ class App:
 
             shutil.move(main_class_path, os.path.join(project_main_package_path, "%s.java" % main_class))
 
+            if plugin_type == "MiniGame":
+                #todo: Move this package iteration to a list. Get all sub folders in 'project_main_path'...
+                #todo then shutil.move(package,project_main_path) for each of em!
+                # Get the URL's for the user and state packages in the plugin!
+                user_package = os.path.join(project_main_path, "user")
+                state_package = os.path.join(project_main_path, "state")
+                listener_package = os.path.join(project_main_path, "listener")
+                # Move them to their locations, retaining structure of the app!
+                shutil.move(user_package, project_main_package_path)
+                shutil.move(state_package, project_main_package_path)
+                shutil.move(listener_package, project_main_package_path)
+
             print("Finished Generating project [%s] @ %s" % (project_name, project_new_path))
 
             # Get the project configuration directory.
@@ -448,6 +488,7 @@ class App:
 
             print("Created %s.yml file in projects folder to allow management with CraftBuildTools!" % project_name)
             print("Continuing Execution!")
+
         # If the script was executed with the add-project argument, then we're going
         # to prompt the user for all the options required to create a new project.
         # After the prompting of such, the script will finish execution. Adding projects is
