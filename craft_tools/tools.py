@@ -32,6 +32,8 @@ parser.add_argument('--todo', required=False, action="store_true", help="Flag us
 parser.add_argument('--upload', required=False, action="store_true",
                     help="Whether or not to upload the files to the server.")
 parser.add_argument('--remotefolder', required=False, help="The remote location which to upload files to!")
+parser.add_argument('--listprojects', required=False, action="store_true",
+                    help="List all the available projects to perform operations on!")
 
 # TODO Make some implementation of the mary jane.
 
@@ -217,6 +219,21 @@ class Project(object):
                 print("Project %s has failed to build" % self.name)
         return build_success
 
+    def __str__(self):
+        return """*-- %s --*
+    * Directory: %s
+    * Build Command %s
+    * Version: %s
+        """ % (
+            self.name,
+            self.directory,
+            self.build_command,
+            self.get_pom_info()['version']
+        )
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class ToDo(object):
     def __init__(self):
@@ -245,7 +262,8 @@ class App:
             'todo': args.todo,
             'add_project': args.addproject,
             'upload': args.upload,
-            'create_project': args.createproject
+            'create_project': args.createproject,
+            'list_projects': args.listprojects
         }
 
         if args.config:
@@ -354,6 +372,11 @@ class App:
 
     def run(self):
 
+        if self.operations['list_projects']:
+            for project in self.projects:
+                print(project.__str__())
+            return
+
         if self.operations['create_project']:
 
             # todo move prompting to click prompt.
@@ -457,16 +480,22 @@ class App:
             shutil.move(main_class_path, os.path.join(project_main_package_path, "%s.java" % main_class))
 
             if plugin_type == "MiniGame":
-                #todo: Move this package iteration to a list. Get all sub folders in 'project_main_path'...
-                #todo then shutil.move(package,project_main_path) for each of em!
-                # Get the URL's for the user and state packages in the plugin!
-                user_package = os.path.join(project_main_path, "user")
-                state_package = os.path.join(project_main_path, "state")
-                listener_package = os.path.join(project_main_path, "listener")
-                # Move them to their locations, retaining structure of the app!
-                shutil.move(user_package, project_main_package_path)
-                shutil.move(state_package, project_main_package_path)
-                shutil.move(listener_package, project_main_package_path)
+
+                directory_list = os.listdir(project_main_path)
+
+                for dirname in directory_list:
+                    print("Directory %s in MiniGame Template Render" % dirname)
+                    shutil.move(os.path.join(project_main_path, dirname), project_main_package_path)
+                    print("Moved to %s " % project_main_package_path)
+
+                    # # Get the URL's for the user and state packages in the plugin!
+                    # user_package = os.path.join(project_main_path, "user")
+                    # state_package = os.path.join(project_main_path, "state")
+                    # listener_package = os.path.join(project_main_path, "listener")
+                    # # Move them to their locations, retaining structure of the app!
+                    # shutil.move(user_package, project_main_package_path)
+                    # shutil.move(state_package, project_main_package_path)
+                    # shutil.move(listener_package, project_main_package_path)
 
             print("Finished Generating project [%s] @ %s" % (project_name, project_new_path))
 
@@ -520,6 +549,7 @@ class App:
 
         # Build a todo file!
         if self.operations['todo'] is True:
+            # TODo Finish this implementation!
             for project in self.projects:
                 todos = {
 
@@ -622,6 +652,8 @@ class App:
                 shutil.copyfile(output_jar_path, new_file_path)
                 copied_files.append(new_file_path)
 
+        # If there's no files that were copied, we want to upload all the files
+        # in the 'files' folder, to the server.
         if len(copied_files) == 0:
             copied_files = self.__get_jar_files()
 
