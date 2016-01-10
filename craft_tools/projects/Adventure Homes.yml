@@ -1,0 +1,4 @@
+build_command: mvn clean install --offline
+directory: /home/brandon/Projects/Adventure-Craft/Adventure Homes/
+name: Homes
+target_directory: /home/brandon/Projects/Adventure-Craft/Adventure Homes/target/

@@ -1,0 +1,4 @@
+build_command: mvn clean install --offline
+directory: /home/brandon/Projects/Adventure-Craft/Loot Generator/
+name: LootGenerator
+target_directory: /home/brandon/Projects/Adventure-Craft/Loot Generator/target/

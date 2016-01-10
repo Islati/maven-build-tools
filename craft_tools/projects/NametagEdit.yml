@@ -1,0 +1,4 @@
+build_command: mvn clean install --offline
+directory: /home/brandon/Projects/NametagEdit
+name: NametagEdit
+target_directory: /home/brandon/Projects/NametagEdit/target/

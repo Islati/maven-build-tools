@@ -1,0 +1,4 @@
+build_command: mvn clean install --offline
+directory: /home/brandon/Projects/Adventure-Craft/Adventure Gems/
+name: Gems
+target_directory: /home/brandon/Projects/Adventure-Craft/Adventure Gems/target/
