@@ -1,3 +1,4 @@
+#!/usr/bin/env python3.4
 import fnmatch
 import yaml
 import os
@@ -5,8 +6,14 @@ import shutil
 import argparse
 import subprocess
 import logging
-
 import click
+
+try:
+    from sh import git
+except ImportError:
+    print("Unable to locate the git executables on your system. Please assure you have git installed and try again!")
+    exit()
+
 from logging.config import dictConfig
 from builtins import input
 from bs4 import BeautifulSoup
@@ -36,6 +43,10 @@ parser.add_argument('--upload', required=False, action="store_true",
 parser.add_argument('--remotefolder', required=False, help="The remote location which to upload files to!")
 parser.add_argument('--listprojects', required=False, action="store_true",
                     help="List all the available projects to perform operations on!")
+parser.add_argument('--verbose', required=False, action="store_true",
+                    help="Verbose output! Maximize the output given by CraftBuildTools")
+parser.add_argument('--commons', required=False, action='store_true',
+                    help='When this flag is enabled, executing craft build tools will simply clone Commons, its dependencies, build it using maven, add it to your project structure, and then prep for the next execution; Commons is a massive bukkit framework used to ease the development of plugins for servers, and ease the hosting of servers for owners. It\'s a win win! If you plan on using Commons its\'s highly suggested to run this before continueing.')
 
 # TODO Make some implementation of the mary jane.
 
@@ -54,17 +65,19 @@ logging_config = dict(
             'formatter': 'log_format',
             'level': logging.DEBUG
         },
-        'file_handler': {
-            'class': 'logging.FileHandler',
-            'formatter': 'log_format',
-            'filename': 'builds.log',
-            # os.path.join(os.path.dirname(os.path.realpath(__file__)), "/logs/","%s.log" % time.strftime("%H-%M-%S")),
-            'level': logging.DEBUG
-        }
+        # 'file_handler': {
+        #     'class': 'logging.FileHandler',
+        #     'formatter': 'log_format',
+        #     'filename': 'builds.log',
+        #     # os.path.join(os.path.dirname(os.path.realpath(__file__)), "/logs/","%s.log" % time.strftime("%H-%M-%S")),
+        #     'level': logging.DEBUG
+        # }
     },
     loggers={
         'root': {
-            'handlers': ['stream_handler', 'file_handler'],
+            'handlers': ['stream_handler'
+                         # , 'file_handler'
+                         ],
             'level': logging.DEBUG
         }
     }
@@ -211,6 +224,9 @@ class Project(object):
             for line in build_process.stdout.readlines():
                 maven_build_lines.append(line)
 
+                if args.verbose:
+                    print(line)
+
             build_value = build_process.wait()
 
             build_success = any(b"BUILD SUCCESS" in line for line in maven_build_lines)
@@ -255,6 +271,8 @@ class App:
 
         self.build_projects = []
 
+        self.verbose = args.verbose
+
         # Todo Move operations to classes that are executed with args.
         self.operations = {
             'copy': args.copy,
@@ -265,7 +283,8 @@ class App:
             'add_project': args.addproject,
             'upload': args.upload,
             'create_project': args.createproject,
-            'list_projects': args.listprojects
+            'list_projects': args.listprojects,
+            'commons': args.commons
         }
 
         if args.config:
@@ -376,7 +395,75 @@ class App:
         with open(self.config_location, 'r') as yaml_file:
             self.config = yaml.load(yaml_file)
 
+    def save_project(self, project):
+        projects_config_dir = os.path.join(self.__executing_location(), 'projects')
+
+        with open(os.path.join(projects_config_dir, '%s.yml' % project.name), 'w') as project_new_config_file:
+            yaml.dump(project.yaml(), project_new_config_file, default_flow_style=False)
+
     def run(self):
+
+        # Todo implement option to accept alternative commons directory.
+        if self.operations['commons']:
+            commons_repo_url = click.prompt("Commons Git Repository",
+                                            default="https://github.com/TechnicalBro/Commons.git")
+            clone_repo_dir = os.path.expanduser(click.prompt("Directory for Repository", default="~/Projects"))
+            commons_repo_dir = os.path.join(clone_repo_dir, "Commons")
+
+            if not os.path.exists(clone_repo_dir):
+                print("Folder to clone your repo into doesn't exists.")
+                create_parent_dir = click.prompt("Create the parent folder for Commons Repository", type=click.BOOL,
+                                                 default=True)
+                if not create_parent_dir:
+                    print("Unable to continue forward with operations as we're unable to create the parent directory.")
+                    return
+
+                os.makedirs(clone_repo_dir)
+                print("Created the parent directory which Commons will be stored in.")
+                print("Just one moment, preparing project for cloning.")
+
+            if os.path.isdir(commons_repo_dir):
+                delete_existing_repo = click.prompt("Delete existing Commons project", type=click.BOOL,
+                                                    default=False)
+                if not delete_existing_repo:
+                    print("Cancelled. Not removing the current Commons project files.")
+                    exit()
+                    return
+                else:
+                    shutil.rmtree(commons_repo_dir)
+                    print("Removed the existing Commons data.")
+
+            with ChangeDir(clone_repo_dir):
+                print("Changed active directory to %s for cloning to")
+                print("Beginning to clone Commons repository from: %s" % commons_repo_url)
+                git.clone(commons_repo_url)
+
+                new_repo_exists = os.path.exists(commons_repo_dir)
+                if not new_repo_exists:
+                    print(
+                        "After attempting to clone the Commons repository, operations have failed. Exiting CraftBuildTools")
+                    exit()
+                    return
+
+                print("Successfully cloned %s to %s" % (commons_repo_url, commons_repo_dir))
+                print("Creating a CraftBuildTools project file for Commons.")
+                commons = Project(
+                    name="Commons",
+                    directory=commons_repo_dir,
+                    target_directory=os.path.join(commons_repo_dir, 'target')
+                )
+
+                self.save_project(project=commons)
+                print("Saved Commons to the CraftBuildTools configuration directory.")
+                print("Attempting to build Commons using maven, and build commons '%s'" % commons.build_command)
+                if not commons.build():
+                    print(
+                        "Unable to build Commons maven project. Execute a manual maven build to determine the error. Sorry. :(")
+                    return
+
+                print(
+                    "You've built Commons successfully! Congratulations, you're now able to make awesome Bukkit Plugins!")
+                return
 
         if self.operations['list_projects']:
             for project in self.projects:
@@ -513,7 +600,7 @@ class App:
                 name=project_name,
                 directory=project_new_path,
                 target_directory=os.path.join(project_new_path, "target"),
-                build_command="mvn clean install --offline"
+                build_command="mvn clean install"
             )
 
             # Save the project to file!
@@ -616,6 +703,7 @@ class App:
 
                 # Change to the working Directory.
                 build_status = project.build()
+
                 #         TODO Implement checking for where the build failed
                 if build_status is False:
                     logging.error("Failed to build %s using command '%s'", project.name, project.build_command)
