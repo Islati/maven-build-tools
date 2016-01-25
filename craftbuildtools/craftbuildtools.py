@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.4
+#!/usr/bin/python3
 import fnmatch
 import yaml
 import os
@@ -29,7 +29,7 @@ parser.add_argument('--location', required=False,
                     help="If the copy flag is included, this will output them to an optional location.")
 parser.add_argument('--clean', required=False, action='store_true',
                     help='Clear all files currently here before copying')
-parser.add_argument('--config', required=False, type=argparse.FileType)
+# parser.add_argument('--config', required=False, type=argparse.FileType)
 parser.add_argument('--build', required=False, nargs="*", default=None)
 # parser.add_argument('--build', required=False, action="store_true")
 # TODO Create an argument group for adding projects, with sub args dependant on how its structured
@@ -47,6 +47,8 @@ parser.add_argument('--verbose', required=False, action="store_true",
                     help="Verbose output! Maximize the output given by CraftBuildTools")
 parser.add_argument('--commons', required=False, action='store_true',
                     help='When this flag is enabled, executing craft build tools will simply clone Commons, its dependencies, build it using maven, add it to your project structure, and then prep for the next execution; Commons is a massive bukkit framework used to ease the development of plugins for servers, and ease the hosting of servers for owners. It\'s a win win! If you plan on using Commons its\'s highly suggested to run this before continueing.')
+
+args = None
 
 # TODO Make some implementation of the mary jane.
 
@@ -287,10 +289,12 @@ class App:
             'commons': args.commons
         }
 
-        if args.config:
-            self.config_location = args.config
-        else:
-            self.config_location = os.path.join(self.__executing_location(), "config.yml")
+        self.config_folder = os.path.expanduser("~/.craftbuildtools/")
+
+        if not os.path.exists(self.config_folder):
+            os.makedirs(self.config_folder)
+
+        self.config_location = os.path.join(self.config_folder, "config.yml")
 
         # Load the configuration file.
         self.__init_config()
@@ -300,7 +304,7 @@ class App:
             self.files_folder = args.location
             print("Updated output folder to %s" % args.location)
         else:
-            self.files_folder = os.path.join(self.__executing_location(), "files")
+            self.files_folder = os.path.join(self.config_folder, "files")
 
         # Create the files folder (Where all the copied jar files will be going!
         self.__init_files_folder()
@@ -322,9 +326,6 @@ class App:
         else:
             print("Skipping implementation of build process!")
 
-    def __executing_location(self):
-        return os.path.dirname(os.path.realpath(__file__))
-
     def __init_files_folder(self):
         if not os.path.exists(self.files_folder):
             os.mkdir(self.files_folder)
@@ -334,7 +335,7 @@ class App:
         return get_files_recursive(self.files_folder, "*.jar")
 
     def __load_projects(self):
-        projects_config_dir = os.path.join(self.__executing_location(), 'projects')
+        projects_config_dir = os.path.join(self.config_folder, 'projects')
 
         # Create the projects folder if it doesn't exist.
         if not os.path.exists(projects_config_dir):
@@ -389,21 +390,20 @@ class App:
         with open(self.config_location, 'w') as yaml_file:
             yaml.dump(self.config, yaml_file, default_flow_style=False)
 
-        print("Configuration for CraftBuildTools has been saved at %s", self.config_location)
+        print("Configuration for CraftBuildTools has been saved at %s" % self.config_location)
 
     def __load_config(self):
         with open(self.config_location, 'r') as yaml_file:
             self.config = yaml.load(yaml_file)
 
     def save_project(self, project):
-        projects_config_dir = os.path.join(self.__executing_location(), 'projects')
+        projects_config_dir = os.path.join(self.config_folder, 'projects')
 
         with open(os.path.join(projects_config_dir, '%s.yml' % project.name), 'w') as project_new_config_file:
             yaml.dump(project.yaml(), project_new_config_file, default_flow_style=False)
 
     def run(self):
 
-        # Todo implement option to accept alternative commons directory.
         if self.operations['commons']:
             commons_repo_url = click.prompt("Commons Git Repository",
                                             default="https://github.com/TechnicalBro/Commons.git")
@@ -472,6 +472,20 @@ class App:
 
         if self.operations['create_project']:
 
+            templates_folder = os.path.join(self.config_folder, "templates")
+
+            if not os.path.exists(templates_folder):
+                os.makedirs(templates_folder)
+                with ChangeDir(templates_folder):
+                    print("Cloning CookieCutter Template: Commons (BukkitPlugin)")
+                    git.clone('https://github.com/TechnicalBro/cookiecutter-commons-bukkitplugin.git')
+                    print("Finished Cloning.")
+                    print("Cloning CookieCutter Template: Commons (MiniGame)")
+                    git.clone("https://github.com/TechnicalBro/cookiecutter-commons-minigame.git")
+                    print("Finished Cloning.")
+                    # TODO implement argparse arg for adding more repos / templates.
+
+
             # todo move prompting to click prompt.
             project_author = click.prompt("Project Author", default="Your Username")
             project_name = click.prompt("Project Name", default="My Spigot Project")
@@ -510,7 +524,8 @@ class App:
             # todo implement template selection from menu, and program accordingly!
             if plugin_type == "BukkitPlugin":
 
-                cookiecutter("templates/cookiecutter-commons-bukkitplugin/", output_dir=output_dir, no_input=True,
+                cookiecutter(os.path.join(templates_folder, "/cookiecutter-commons-bukkitplugin/"),
+                             output_dir=output_dir, no_input=True,
                              extra_context={
                                  "project_author": project_author,
                                  "project_name": project_name,
@@ -526,7 +541,8 @@ class App:
                              })
             else:
 
-                cookiecutter("templates/cookiecutter-commons-minigame/", output_dir=output_dir, no_input=True,
+                cookiecutter(os.path.join(templates_folder, "/cookiecutter-commons-minigame/"), output_dir=output_dir,
+                             no_input=True,
                              extra_context={
                                  "project_author": project_author,
                                  "project_name": project_name,
@@ -581,19 +597,10 @@ class App:
                     shutil.move(os.path.join(project_main_path, dirname), project_main_package_path)
                     print("Moved to %s " % project_main_package_path)
 
-                    # # Get the URL's for the user and state packages in the plugin!
-                    # user_package = os.path.join(project_main_path, "user")
-                    # state_package = os.path.join(project_main_path, "state")
-                    # listener_package = os.path.join(project_main_path, "listener")
-                    # # Move them to their locations, retaining structure of the app!
-                    # shutil.move(user_package, project_main_package_path)
-                    # shutil.move(state_package, project_main_package_path)
-                    # shutil.move(listener_package, project_main_package_path)
-
             print("Finished Generating project [%s] @ %s" % (project_name, project_new_path))
 
             # Get the project configuration directory.
-            projects_config_dir = os.path.join(self.__executing_location(), 'projects')
+            projects_config_dir = os.path.join(self.config_folder, 'projects')
 
             # Create the project from prompt.
             project = Project(
@@ -617,7 +624,7 @@ class App:
         # an execution that required to be run on its own.
         if self.operations['add_project']:
             # Get the project configuration directory.
-            projects_config_dir = os.path.join(self.__executing_location(), 'projects')
+            projects_config_dir = os.path.join(self.config_folder, 'projects')
 
             # Create the project from prompt.
             project = Project.create_from_prompt()
