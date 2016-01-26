@@ -1,4 +1,0 @@
-build_command: mvn clean install --offline
-directory: /home/brandon/Projects/Adventure-Craft/Adventure Core/
-name: AdventureCore
-target_directory: /home/brandon/Projects/Adventure-Craft/Adventure Core/target/

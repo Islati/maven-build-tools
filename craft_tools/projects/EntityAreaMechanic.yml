@@ -1,4 +1,0 @@
-build_command: mvn clean install --offline
-directory: /home/brandon/Projects/EntityAreaMechanic/EntitySpawning/
-name: EntityAreaMechanic
-target_directory: /home/brandon/Projects/EntityAreaMechanic/EntitySpawning/target/

@@ -1,4 +1,0 @@
-build_command: mvn clean install --offline
-directory: /home/brandon/Projects/Adventure-Craft/Adventure-Brother/
-name: BigBrother
-target_directory: /home/brandon/Projects/Adventure-Craft/Adventure-Brother/target/
