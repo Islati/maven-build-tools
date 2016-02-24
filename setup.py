@@ -51,7 +51,7 @@ def main():
             'pytest-cov',
             'pytest-random'
         ],
-        classifiers=(
+        classifiers=[
             'Development Status :: 5 - Production/Stable',
             'Intended Audience :: Developers',
             'Intended Audience :: System Administrators',
@@ -60,8 +60,8 @@ def main():
             'Programming Language :: Python',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.3',
-            'Programming Language :: Python :: 3.4',
-        )
+            'Programming Language :: Python :: 3.4'
+        ],
     )
 
 
