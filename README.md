@@ -43,7 +43,7 @@ Features
 
 Commands
 ---------------
-#### <i class="icon-file"></i> Create a Project
+####<i class="icon-file"></i>Create a Project
 
 *Run the command below, and follow its simply prompts!*
 
@@ -60,17 +60,17 @@ Commands
 
 Unlike below, *createproject* is its own command as it's an extremely complex operation, simplified through awesome design!
 
-#### <i class="icon-hdd"></i> Add a Project to be Managed
+####<i class="icon-hdd"></i>Add a Project to be Managed
 
 *Enter the command below, and follow the prompts! It's super simple!*
 
     $ craftbuildtools projects add
 
-#### <i class="icon-pencil"></i> Edit a Projects Information
+####<i class="icon-pencil"></i>Edit a Projects Information
 
     $ craftbuildtools projects edit
 
-#### <i class="icon-trash"></i> Remove a Project from CraftBuildTools
+####<i class="icon-trash"></i>Remove a Project from CraftBuildTools
 
 *Enter the command below, and follow the prompts! *
 
@@ -78,24 +78,24 @@ Unlike below, *createproject* is its own command as it's an extremely complex op
 
 *Note: There's also an option to remove the entire project source... Just incase you need it!*
 
-#### <i class="icon-list"></i> List all your available projects!
+####<i class="icon-list"></i>List all your available projects!
 
     $ craftbuildtools projects list
 
-#### <i class="icon-code"></i> Build your Project(s)
+####<i class="icon-code"></i>Build your Project(s)
 
     $ craftbuildtools build -p ProjOne -p ProjTwo
 
-#### <i class="icon-trash"></i> Clean all the old Files!
+####<i class="icon-trash"></i>Clean all the old Files!
 
     $ craftbuildtools clean
 
 
-#### <i class="icon-"></i> Copy all your built project files!
+####<i class="icon-"></i>Copy all your built project files!
 
     $ craftbuildtools copy -l ~/Location/
 
-#### <i class="icon-upload"></i> Upload your Project(s) build files.
+####<i class="icon-upload"></i>Upload your Project(s) build files.
 
 *With options defined after you first ran CraftBuildTools*
 
@@ -106,7 +106,7 @@ Unlike below, *createproject* is its own command as it's an extremely complex op
     $ craftbuildtols upload -h ftp.host.com -u Username -p Password -d /Dev/Plugins/ --updateconfig
 
 
-#### <i class="icon-star"></i> ALL TOGETHER NOW!
+####<i class="icon-star"></i>ALL TOGETHER NOW!
 
     $ craftbuildtools clean build -p Project -p API -p Plugin copy -l ~/MinecraftPlugins/ upload -d /Dev/Plugins/
 
