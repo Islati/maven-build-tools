@@ -8,6 +8,26 @@ With CraftBuildTools it simplified the entire process with a single command, and
 
 ----------
 
+Installing
+-------------
+
+*Installing Latest Release (From PyPi)*
+
+    $ pip install craftbuildtools
+    
+*Installing Latest Release (From Github)*
+
+    $ git clone https://github.com/TechnicalBro/CraftBuildTools.git
+    $ cd CraftBuildTools
+    $ python setup.py install 
+    
+*Installing Legacy Release (Only available on GitHub)*
+
+    $ wget https://github.com/TechnicalBro/CraftBuildTools/archive/legacy.tar.gz
+    $ tar xvf legacy.tar.gz
+    $ cd legacy
+    $ python setup.py install
+
 
 Features
 -------------
