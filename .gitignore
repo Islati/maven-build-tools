@@ -8,6 +8,9 @@ __pycache__/
 # C extensions
 *.so
 
+# BitTorrent Sync
+.sync
+
 # Distribution / packaging
 .Python
 env/
