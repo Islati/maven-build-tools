@@ -6,12 +6,12 @@ import yaml
 from simpleplugins import PluginManager, get_files_recursive
 
 from craftbuildtools.operations import OperationPlugin
-from craftbuildtools.data import Project
+from craftbuildtools.data import Project, DEFAULT_CONFIGURATION
 
-logger = logging.getLogger("CraftBuildTools")
+logger = logging.getLogger("craft-buildtools")
 
-formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-console_log_handler = logging.StreamHandler(stream=sys.stdout)
+formatter = logging.Formatter('[%(asctime)s %(name)-12s] [%(levelname)-8s] :: %(message)s')
+console_log_handler = logging.StreamHandler()
 console_log_handler.setFormatter(formatter)
 console_log_handler.setLevel(logging.DEBUG)
 
@@ -106,13 +106,13 @@ class CraftBuildToolsApplication(object):
 
     def __create_config(self):
         if not self.config:
-            self.config = {
-                'ftp-host': click.prompt('FTP Host', default='HOST'),
-                'ftp-username': click.prompt('FTP Username', default='USERNAME'),
-                'ftp-password': click.prompt('FTP Password', default='PASSWORD'),
-                'remote-upload-directory': click.prompt('Remote upload directory', default='/Dev/plugins/')
-            }
-            # TODO implement config options to load templates and their generators
+            self.config = DEFAULT_CONFIGURATION
+
+            self.config['ftp-server']['ftp-host'] = click.prompt("FTP Hostname", default="HOST")
+            self.config['ftp-server']['ftp-username'] = click.prompt("FTP Username", default="USERNAME")
+            self.config['ftp-server']['ftp-password'] = click.prompt("FTP Password", default="PASSWORD")
+            self.config['ftp-server']['remote-upload-directory'] = click.prompt("Remote Upload Directory",
+                                                                                default="/Dev/plugins/")
 
         with open(self.config_location, 'w') as yaml_file:
             yaml.dump(self.config, yaml_file, default_flow_style=False)
@@ -253,10 +253,10 @@ If the options are not specified, default values will be polled from the applica
               help="Remote Folder for Files", metavar="<directory>")
 def upload(host, user, password, directory, updateconfig):
     if updateconfig:
-        app.config['ftp-host'] = host
-        app.config['ftp-host'] = user
-        app.config['ftp-password'] = password
-        app.config['remote-upload-directory'] = directory
+        app.config['ftp-server']['ftp-host'] = host
+        app.config['ftp-server']['ftp-host'] = user
+        app.config['ftp-server']['ftp-password'] = password
+        app.config['ftp-server']['remote-upload-directory'] = directory
         logger.info("Updated FTP Configuration to the options provided.")
 
     click.echo("Beginning Upload Operation!")

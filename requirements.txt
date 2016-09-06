@@ -10,3 +10,4 @@ click==6.2
 sh==1.11
 git+https://github.com/TechnicalBro/yaml-bro.git
 git+https://github.com/TechnicalBro/simple-python-plugins.git
+nose
