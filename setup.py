@@ -5,7 +5,7 @@ from setuptools import setup
 def main():
     setup(
         name='craftbuildtools',
-        version='0.1.2',
+        version='0.1.3',
         packages=[
             'craftbuildtools',
             'craftbuildtools.data',
