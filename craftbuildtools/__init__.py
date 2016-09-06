@@ -244,12 +244,14 @@ If the options are not specified, default values will be polled from the applica
 """)
 @click.option("--updateconfig", "updateconfig", type=click.BOOL, default=False,
               help="Save the configuration values to file, for re-use")
-@click.option('-h', "host", type=click.STRING, default=app.config['ftp-host'], help="FTP Host Name", metavar="<host>")
-@click.option('-u', "user", type=click.STRING, default=app.config['ftp-username'], help="FTP username",
+@click.option('-h', "host", type=click.STRING, default=app.config['ftp-server']['ftp-host'], help="FTP Host Name",
+              metavar="<host>")
+@click.option('-u', "user", type=click.STRING, default=app.config['ftp-server']['ftp-username'], help="FTP username",
               metavar="<user>")
-@click.option('-p', "password", type=click.STRING, default=app.config['ftp-password'], help="FTP Password",
+@click.option('-p', "password", type=click.STRING, default=app.config['ftp-server']['ftp-password'],
+              help="FTP Password",
               metavar="<password>")
-@click.option('-d', "directory", type=click.STRING, default=app.config['remote-upload-directory'],
+@click.option('-d', "directory", type=click.STRING, default=app.config['ftp-server']['remote-upload-directory'],
               help="Remote Folder for Files", metavar="<directory>")
 def upload(host, user, password, directory, updateconfig):
     if updateconfig:

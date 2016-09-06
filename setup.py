@@ -37,7 +37,7 @@ def main():
             'cookiecutter==1.3.0',
             'click==6.2',
             'sh==1.11',
-            'simpleplugins',
+            'simpleplugins==0.1.2',
             'yamlbro',
         ],
         dependency_links=[
