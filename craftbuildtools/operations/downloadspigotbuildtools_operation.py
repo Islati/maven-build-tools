@@ -35,3 +35,5 @@ class DownloadSpigotBuildToolsOperation(OperationPlugin):
                 logger.info("Successfully downloaded BuildTools.jar")
             else:
                 logger.error("BuildTools.jar Failed To Download")
+
+download_tools_operation = DownloadSpigotBuildToolsOperation()
