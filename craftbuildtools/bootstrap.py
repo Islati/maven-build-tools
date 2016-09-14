@@ -1,6 +1,6 @@
 from craftbuildtools.app import cli
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 def main():
     cli()
