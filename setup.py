@@ -6,11 +6,11 @@ import re
 
 version = re.search(
     '^__version__\s*=\s*"(.*)"',
-    open('bootstrap/bootstrap.py').read(),
+    open('craftbuildtools/bootstrap.py').read(),
     re.M
 ).group(1)
 
-with open("README.rst", "rb") as f:
+with open("README.md", "rb") as f:
     long_descr = f.read().decode("utf-8")
 
 
