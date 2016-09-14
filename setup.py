@@ -10,9 +10,6 @@ version = re.search(
     re.M
 ).group(1)
 
-with open("README.md", "rb") as f:
-    long_descr = f.read().decode("utf-8")
-
 
 def main():
     setup(
@@ -30,7 +27,6 @@ def main():
         author='Brandon Curtis',
         author_email='freebird.brandon@gmail.com',
         description='Build automation and Project creation for Minecraft/Spigot/Bukkit, Maven Projects',
-        long_description=long_descr,
         entry_points={
             'console_scripts': [
                 'craftbuildtools = craftbuildtools.bootstrap:main'
