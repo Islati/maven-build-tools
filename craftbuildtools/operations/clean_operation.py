@@ -1,5 +1,9 @@
+import logging
 import os
-from craftbuildtools import OperationPlugin
+from craftbuildtools.operations import OperationPlugin
+
+logger = logging.getLogger("craft-buildtools")
+
 
 
 class CleanOperation(OperationPlugin):
@@ -9,10 +13,10 @@ class CleanOperation(OperationPlugin):
         self.description = "Rid yourself of those dirty old files and get some new ones"
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
         import click
 
-        for project_jar in app.get_jar_files():
+        files = kwargs.pop('jar_files')
+        for project_jar in files:
             os.remove(project_jar)
             click.echo("File %s has been removed" % os.path.basename(project_jar))
 

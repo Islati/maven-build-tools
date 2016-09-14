@@ -1,6 +1,9 @@
+import logging
 import os
 import requests
 from craftbuildtools.operations import OperationPlugin
+
+logger = logging.getLogger("craft-buildtools")
 
 
 class DownloadSpigotBuildToolsOperation(OperationPlugin):
@@ -13,9 +16,6 @@ class DownloadSpigotBuildToolsOperation(OperationPlugin):
         self.description = "Download the latest version of spigot's BuildTools.jar to retrieve the latest server jar files."
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
-        import click
-
         save_location = kwargs.get("save_location", default=os.getcwd())
 
         if os.path.isdir(save_location):
@@ -25,13 +25,13 @@ class DownloadSpigotBuildToolsOperation(OperationPlugin):
             response = requests.get(self.spigot_build_tools_url, stream=True)
 
             if not response.ok:
-                click.echo("Error when downloading BuildTools")
+                logger.error("Error when downloading BuildTools")
                 return
 
             for block in response.iter_content(1024):
                 handle.write(block)
 
             if os.path.exists(save_location):
-                click.echo("Successfully downloaded BuildTools.jar")
+                logger.info("Successfully downloaded BuildTools.jar")
             else:
-                click.echo("BuildTools.jar Failed To Download")
+                logger.error("BuildTools.jar Failed To Download")

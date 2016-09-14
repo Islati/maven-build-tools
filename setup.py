@@ -1,11 +1,23 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from setuptools import setup
+import re
+
+version = re.search(
+    '^__version__\s*=\s*"(.*)"',
+    open('bootstrap/bootstrap.py').read(),
+    re.M
+).group(1)
+
+with open("README.rst", "rb") as f:
+    long_descr = f.read().decode("utf-8")
 
 
 def main():
     setup(
         name='craftbuildtools',
-        version='0.1.3',
+        version=version,
         packages=[
             'craftbuildtools',
             'craftbuildtools.data',
@@ -18,9 +30,10 @@ def main():
         author='Brandon Curtis',
         author_email='freebird.brandon@gmail.com',
         description='Build automation and Project creation for Minecraft/Spigot/Bukkit, Maven Projects',
+        long_description=long_descr,
         entry_points={
             'console_scripts': [
-                'craftbuildtools = craftbuildtools.__main__:main'
+                'craftbuildtools = craftbuildtools.bootstrap:main'
             ]
         },
         keywords=[
@@ -39,6 +52,7 @@ def main():
             'sh==1.11',
             'simpleplugins==0.1.2',
             'yamlbro',
+            'argparse',
         ],
         dependency_links=[
             'git+https://github.com/TechnicalBro/yaml-bro.git',

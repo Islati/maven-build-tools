@@ -1,9 +1,9 @@
+import logging
 import os
 from bs4 import BeautifulSoup
 import click
 import yaml
 from craftbuildtools.utils import get_files_recursive
-import craftbuildtools as cbt
 
 
 class Project(object):
@@ -44,7 +44,7 @@ class Project(object):
     def __get_pom_file(self):
         pom_path = os.path.join(self.directory, "pom.xml")
         if not os.path.exists(pom_path):
-            cbt.logger.warn("Project %s has no pom.xml at expects '%s'" % (self.name, pom_path))
+            click.echo("Project %s has no pom.xml at expects '%s'" % (self.name, pom_path))
             return None
 
         return pom_path
@@ -55,7 +55,7 @@ class Project(object):
     def get_pom_info(self):
         pom_file = self.__get_pom_file()
         if pom_file is None:
-            cbt.logger.warn("Unable to find pom file for project %s" % self.name)
+            logger.warn("Unable to find pom file for project %s" % self.name)
             return None
 
         pom_doc = None

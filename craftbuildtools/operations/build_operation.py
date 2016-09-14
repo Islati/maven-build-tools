@@ -1,7 +1,10 @@
+import logging
 import os
 import subprocess
 from craftbuildtools.operations import OperationPlugin
 from craftbuildtools.utils import ChangeDir
+
+logger = logging.getLogger("craft-buildtools")
 
 
 class MavenBuildOperation(OperationPlugin):
@@ -11,16 +14,21 @@ class MavenBuildOperation(OperationPlugin):
         self.description = "Mange your projects and generate builds (Maven Only)"
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
         import click
 
         failed_builds = []
         successful_builds = []
         invalid_project_folders = []
-
-        app.build_projects.sort()
-
         total_project_count = 0
+
+        build_projects = kwargs.pop('build_projects')
+        build_projects.sort()
+
+        projects = kwargs.pop('projects')
+
+        if (build_projects is None or len(build_projects) is 0) or (projects is None or len(projects) is 0):
+            click.echo("There are no projects to be built")
+            return
 
         from threading import Thread
 
@@ -45,14 +53,17 @@ class MavenBuildOperation(OperationPlugin):
                 if build_success is True:
                     click.echo("Project %s has been built successfully" % bp.name)
                     successful_builds.append(bp.name)
-                    app.built_projects.append(bp)
                 else:
                     click.echo("Project %s has failed to build" % bp.name)
                     failed_builds.append(bp.name)
 
-        for project_name in app.build_projects:
+        if build_projects is None or len(build_projects) == 0:
+            click.echo("There were no projects specified to be built")
+            return None, None
+
+        for project_name in build_projects:
             total_project_count += 1
-            project = app.projects[project_name]
+            project = projects[project_name]
 
             if not os.path.exists(project.directory):
                 invalid_project_folders.append(project.name)
@@ -75,6 +86,8 @@ class MavenBuildOperation(OperationPlugin):
              failed_projects,
              ','.join(name for name in failed_builds)
              ))
+
+        return successful_builds, failed_builds
 
 
 build_plugin = MavenBuildOperation()

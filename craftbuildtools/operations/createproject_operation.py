@@ -1,8 +1,11 @@
 import inspect
+import logging
 import os
 import click
-from craftbuildtools import OperationPlugin
+from craftbuildtools.operations import OperationPlugin
 from craftbuildtools.template import TemplateRenderPlugin
+
+logger = logging.getLogger("craft-buildtools")
 
 
 class CreateProjectOperation(OperationPlugin):
@@ -12,12 +15,12 @@ class CreateProjectOperation(OperationPlugin):
         self.description = "Generate a project for you to hack on via a CookieCutter Template"
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
         from craftbuildtools.utils import ChangeDir, get_filename
 
         templates_folder = kwargs.pop("templatefolder")
         template = kwargs.pop("template")
         git_repo = kwargs.pop("git_clone_repo")
+        plugin_manager = kwargs.pop('plugin_manager')
 
         if not os.path.exists(templates_folder):
             os.makedirs(templates_folder)
@@ -36,6 +39,15 @@ class CreateProjectOperation(OperationPlugin):
                 cloned_folder_name = get_filename(git_repo)
                 # If the git repository doesn't exist then we need to clone it doen.
                 if not os.path.exists(os.path.join(templates_folder, cloned_folder_name)):
+                    try:
+                        from sh import git
+                    except:
+                        click.echo(
+                            "You must have git installed on your machine in order to perform a clone. Aborting. Install git and try again")
+
+                        exit()
+                        return
+
                     git.clone(git_repo)
 
                     if not os.path.exists(os.path.join(templates_folder, cloned_folder_name).replace(".git", "")):
@@ -140,15 +152,15 @@ class CreateProjectOperation(OperationPlugin):
 
         templates_data = {}
 
-        app.plugin_manager.register(directory=templates_folder, skip_types=OperationPlugin, override=True)
+        plugin_manager.register(directory=templates_folder, skip_types=OperationPlugin, override=True)
 
-        if not app.plugin_manager.has_plugin(plugin_type=TemplateRenderPlugin):
+        if not plugin_manager.has_plugin(plugin_type=TemplateRenderPlugin):
             logger.error(
                 "Unable to locate template rendering plugins in Plugin Manager. Assure your template has a script to render it by.")
             exit()
             return
 
-        template_plugins = app.plugin_manager.get_plugins(plugin_type=TemplateRenderPlugin)
+        template_plugins = plugin_manager.get_plugins(plugin_type=TemplateRenderPlugin)
         for plugin in template_plugins:
             templates_data[plugin.template_name] = {
                 'plugin': plugin,

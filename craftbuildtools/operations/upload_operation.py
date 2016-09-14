@@ -1,6 +1,6 @@
 import os
 from ftpretty import ftpretty
-from craftbuildtools import OperationPlugin
+from craftbuildtools.operations import OperationPlugin
 
 
 class UploadOperation(OperationPlugin):
@@ -10,12 +10,11 @@ class UploadOperation(OperationPlugin):
         self.description = "Upload the files compiled or copied to a remote server!"
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
         import click
 
-        files_to_copy = app.copied_files
+        files_to_copy = kwargs.pop('copied_files')
         if len(files_to_copy) == 0:
-            files_to_copy = app.get_jar_files()
+            files_to_copy = kwargs.pop('jar_files')
 
         ftp_client = ftpretty(host=kwargs.pop("host"), user=kwargs.pop("user"),
                               password=kwargs.pop("password"))

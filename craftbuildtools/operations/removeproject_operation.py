@@ -11,11 +11,12 @@ class RemoveProjectOperation(OperationPlugin):
         self.description = "Remove a project from the management of CraftBuildTools"
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
 
-        project_name = kwargs.pop("project_name", None)
+        projects = kwargs.pop('projects')
+        projects_folder = kwargs.pop('projects_folder')
+        project_name = kwargs.pop("project_name")
         if project_name is None:
-            available_projects = [name for name in app.projects.keys()]
+            available_projects = [name for name in projects.keys()]
 
             while True:
                 click.echo("Available Projects: %s" % ",".join(p for p in available_projects))
@@ -27,7 +28,7 @@ class RemoveProjectOperation(OperationPlugin):
                     click.clear()
                     click.echo("")
 
-        project_info = app.projects[project_name]
+        project_info = projects[project_name]
 
         remove_project_file = click.prompt(text="Are you sure you want to remove the project '%s'?" % project_info.name,
                                            confirmation_prompt=True, type=click.BOOL, prompt_suffix=" ")
@@ -37,7 +38,7 @@ class RemoveProjectOperation(OperationPlugin):
 
         import shutil
 
-        os.remove(os.path.join(app.projects_folder, '%s.yml' % project_info.name))
+        os.remove(os.path.join(projects_folder, '%s.yml' % project_info.name))
         click.echo("Project '%s' file '%s.yml' has been removed." % (project_info.name, project_info.name))
 
         remove_project_source_files = click.prompt("Would you like to remove the project source files?",
@@ -55,4 +56,5 @@ class RemoveProjectOperation(OperationPlugin):
                 except:
                     click.echo("Unable to locate project files. Nothing was removed.")
 
-add_project_operation_plugin = RemoveProjectOperation()
+
+remove_project_operation_plugin = RemoveProjectOperation()

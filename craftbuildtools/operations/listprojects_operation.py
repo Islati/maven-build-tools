@@ -15,12 +15,14 @@ class ListProjectsPlugin(OperationPlugin):
         pass
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
+        projects = kwargs.pop('projects')
         import click
 
-        for project_name in app.projects.keys():
-            project = app.projects[project_name]
-            click.echo(project)
+        if projects is None or len(projects) is 0:
+            click.echo("No projects to list.")
+            return
 
+        for project in projects:
+            click.echo(project)
 
 list_projects_operation_plugin = ListProjectsPlugin()

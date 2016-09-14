@@ -1,9 +1,10 @@
 import copy
+import logging
 import os
 import click
 from craftbuildtools.operations import OperationPlugin
-from craftbuildtools.data import Project
 
+logger = logging.getLogger("craft-buildtools")
 
 class EditProjectOperation(OperationPlugin):
     def __init__(self):
@@ -12,11 +13,16 @@ class EditProjectOperation(OperationPlugin):
         self.description = "Edit a projects information"
 
     def perform(self, *args, **kwargs):
-        from craftbuildtools import app, logger
+        projects = kwargs.pop('projects')
+        projects_folder = kwargs.pop("projects_folder")
+
+        if projects is None or len(projects) is 0:
+            click.echo("There are currently no projects to edit")
+            return
 
         project_name = kwargs.pop("project_name", None)
         if project_name is None:
-            available_projects = [name for name in app.projects.keys()]
+            available_projects = [name for name in projects.keys()]
 
             while True:
                 click.echo("Available Projects: %s" % ",".join(p for p in available_projects))
@@ -28,7 +34,7 @@ class EditProjectOperation(OperationPlugin):
                     click.clear()
                     click.echo("")
 
-        project_info = app.projects[project_name]
+        project_info = projects[project_name]
 
         new_info = copy.deepcopy(project_info)
 
@@ -45,25 +51,7 @@ class EditProjectOperation(OperationPlugin):
 
         save_changes = click.prompt("Save Changes?", confirmation_prompt=True, type=click.BOOL)
 
-        if not save_changes:
-            click.echo("Changes to Project %s have been disregarded" % project_info.name)
-            return
-
-        del app.projects[project_name]
-        import shutil
-        import yaml
-
-        config_path = os.path.join(app.projects_folder, "%s.yml" % project_info.name)
-
-        app.save_project(new_info)
-        click.echo("Project Information has been Updated!")
-
-        if new_info.name != project_info.name:
-            shutil.move(config_path, os.path.join(app.projects_folder, "%s.yml" % new_info.name))
-            click.echo(
-                "Previous config file %s has been renamed to %s" % (
-                    "%s.yml" % project_info.name, "%s.yml" % new_info.name)
-            )
+        return save_changes, new_info, project_info
 
 
-add_project_operation_plugin = EditProjectOperation()
+edit_project_operation_plugin = EditProjectOperation()

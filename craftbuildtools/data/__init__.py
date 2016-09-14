@@ -1,5 +1,5 @@
-from .project import Project
-from .todo import ToDo, ToDoManager
+from craftbuildtools.data.project import Project
+from craftbuildtools.data.todo import ToDo, ToDoManager
 
 DEFAULT_CONFIGURATION = {
     'ftp-server': {
