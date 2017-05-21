@@ -22,7 +22,7 @@ class EditProjectOperation(OperationPlugin):
 
         project_name = kwargs.pop("project_name", None)
         if project_name is None:
-            available_projects = [name for name in projects.keys()]
+            available_projects = [name for name in list(projects.keys())]
 
             while True:
                 click.echo("Available Projects: %s" % ",".join(p for p in available_projects))
