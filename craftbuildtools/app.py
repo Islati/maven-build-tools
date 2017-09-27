@@ -106,7 +106,7 @@ class CraftBuildToolsApplication(object):
                     continue
                 self.projects[project.name] = project
 
-        logger.debug("Loaded Projects [%s] from config folder." % ",".join(name for name in self.projects.keys()))
+        logger.debug("Loaded Projects [%s] from config folder." % ",".join(name for name in list(self.projects.keys())))
 
     def __create_config(self):
         if not self.config:
@@ -205,7 +205,7 @@ def projects_command(action):
         app.plugin_manager.get_plugin('addproject_operation').perform(config_location=app.config_location)
     elif action == "list":
         app.plugin_manager.get_plugin('listprojects_operation').perform(
-            projects=[project for project in app.projects.values()])
+            projects=[project for project in list(app.projects.values())])
     elif action == "edit":
         save, new_info, old_info = app.plugin_manager.get_plugin('editproject_operation').perform(projects=app.projects,
                                                                                                   projects_folder=app.projects_folder)
@@ -248,7 +248,7 @@ def build(projects):
     build_projects = []
 
     if "all" in projects:
-        for name in app.projects.keys():
+        for name in list(app.projects.keys()):
             build_projects.append(name)
     else:
         for build_name in projects:

@@ -172,9 +172,9 @@ class CreateProjectOperation(OperationPlugin):
         project_type = template
         if project_type not in template_plugins:
             project_type_prompt_text = "Which Template Would you like to Render? Choose from ({})".format(
-                ', '.join(templates_data.keys()))
+                ', '.join(list(templates_data.keys())))
 
-            project_type = click.prompt(project_type_prompt_text, type=click.Choice(templates_data.keys()))
+            project_type = click.prompt(project_type_prompt_text, type=click.Choice(list(templates_data.keys())))
 
         template_plugin = templates_data[project_type]['plugin']
         template_plugin.perform(directory=templates_data[project_type]['folder'])
