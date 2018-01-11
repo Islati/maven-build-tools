@@ -384,7 +384,8 @@ class App:
                 'ftp-host': 'HOST',
                 'ftp-username': 'USERNAME',
                 'ftp-password': 'PASSWORD',
-                'remote-upload-directory': '/Dev/plugins/'
+                'remote-upload-directory': '/Dev/plugins/',
+                'sftp-enabled': True
             }
 
         with open(self.config_location, 'w') as yaml_file:
@@ -768,7 +769,7 @@ class App:
                 return
 
             ftp_client = ftpretty(host=self.config['ftp-host'], user=self.config['ftp-username'],
-                                  password=self.config['ftp-password'])
+                                  password=self.config['ftp-password'],secure=self.config['sftp-enabled'])
 
             put_directory = self.config['remote-upload-directory']
 
