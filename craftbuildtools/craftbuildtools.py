@@ -123,7 +123,7 @@ class Project(object):
     def yaml(self):
         return {
             'name': self.name,
-            'directory': self.directory,
+            'directory': os.path.expanduser(self.directory),
             'target_directory': self.target_directory,
             'build_command': self.build_command
         }
@@ -135,7 +135,7 @@ class Project(object):
         directory = input("Project Directory: ")
         target_directory = input("Project Build Directory: ")
         build_command = input("Project Build Command: ")
-        return Project(name=name, directory=directory, target_directory=target_directory, build_command=build_command)
+        return Project(name=name, directory=os.path.expanduser(directory), target_directory=os.path.expanduser(target_directory), build_command=build_command)
 
     @staticmethod
     def load(data):
@@ -148,10 +148,12 @@ class Project(object):
         )
 
     def __get_pom_file(self):
-        pom_path = os.path.join(self.directory, "pom.xml")
+        pom_path = os.path.join(os.path.expanduser(self.directory), "pom.xml")
         if not os.path.exists(pom_path):
             print("Project %s has no pom.xml at expects '%s'" % (self.name, pom_path))
             return None
+        else:
+            print("Project xml exists")
 
         return pom_path
 
@@ -294,7 +296,7 @@ class App:
         if not os.path.exists(self.config_folder):
             os.makedirs(self.config_folder)
 
-        self.config_location = os.path.join(self.config_folder, "config.yml")
+        self.config_location = os.path.join(os.path.expanduser(self.config_folder), "config.yml")
 
         # Load the configuration file.
         self.__init_config()
@@ -705,7 +707,7 @@ class App:
                     if project.name not in self.build_projects:
                         continue
 
-                if not os.path.exists(project.directory):
+                if not os.path.exists(os.path.expanduser(project.directory)):
                     invalid_project_folders.append(project.name)
                     continue
 
@@ -745,7 +747,7 @@ class App:
         if self.operations['copy'] is True:
             for project in built_projects:
                 pom_info = project.get_pom_info()
-                output_jar_path = os.path.join(project.target_directory, pom_info['output_jar'])
+                output_jar_path = os.path.join(os.path.expanduser(project.target_directory), pom_info['output_jar'])
                 if not os.path.exists(output_jar_path):
                     print("Unable to find %s for project %s" % (pom_info['output_jar'], project.name))
                     continue

@@ -3,9 +3,6 @@
 from setuptools import setup
 from pip.req import parse_requirements
 
-reqs = parse_requirements('requirements.txt')
-reqs = [str(ir.req) for ir in reqs]
-
 def main():
     setup(
         name='craftbuildtools',
@@ -26,7 +23,17 @@ def main():
         keywords=[
             "minecraft", "spigot", "bukkit", "templates", "buildtools", "craftbuildtools"
         ],
-        install_requires=reqs
+        install_requires=[
+            "beautifulsoup4==4.4.1",
+            "argparse==1.4.0",
+            "ftpretty==0.2.2",
+            "pyyaml==3.11",
+            "lxml==3.5.0",
+            "cssselect==0.9.1",
+            "cookiecutter==1.3.0",
+            "click==6.2",
+            "sh==1.11"
+        ]
     )
 
 
