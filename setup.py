@@ -39,7 +39,7 @@ def main():
             'beautifulsoup4==4.4.1',
             'argparse==1.4.0',
             'ftpretty==0.2.2',
-            'pyyaml==3.11',
+            'pyyaml==5.4',
             'requests',
             'lxml==3.5.0',
             'cssselect==0.9.1',
