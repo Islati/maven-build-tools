@@ -43,7 +43,7 @@ def main():
             'requests',
             'lxml==3.5.0',
             'cssselect==0.9.1',
-            'cookiecutter==1.3.0',
+            'cookiecutter==2.1.1',
             'click==6.2',
             'sh==1.11',
             'simpleplugins==0.1.2',
