@@ -41,7 +41,7 @@ def main():
             'ftpretty==0.2.2',
             'pyyaml==3.11',
             'requests',
-            'lxml==3.5.0',
+            'lxml==4.9.1',
             'cssselect==0.9.1',
             'cookiecutter==1.3.0',
             'click==6.2',
