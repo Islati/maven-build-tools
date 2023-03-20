@@ -1,15 +1,10 @@
-###**The Ultimate Minecraft Project Manager**
+maven-build-tools 
+====
+👉 Automate tests, builds, copy, and ftp-upload.
 
-While hacking away on your Minecraft Projects you've likely come to dread the time it takes to one-by-one compile, copy, upload, and then test all your plugins.
-
-***No more!***
-
-With CraftBuildTools it simplified the entire process with a single command, and rids the one-by-one process with batch compiles, copies, uploads and more!
-
-----------
 
 Installing
--------------
+===
 
 *Installing Latest Release (From PyPi)*
 
@@ -17,13 +12,13 @@ Installing
     
 *Installing Latest Release (From Github)*
 
-    $ git clone https://github.com/TechnicalBro/CraftBuildTools.git
+    $ git clone https://github.com/Islati/maven-build-tools.git
     $ cd CraftBuildTools
     $ python setup.py install 
     
 *Installing Legacy Release (Only available on GitHub)*
 
-    $ wget https://github.com/TechnicalBro/CraftBuildTools/archive/legacy.tar.gz
+    $ wget https://github.com/Islati/maven-build-tools/archive/legacy.tar.gz
     $ tar xvf legacy.tar.gz
     $ cd legacy
     $ python setup.py install
